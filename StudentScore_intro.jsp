@@ -1,6 +1,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
 <%@ page contentType="text/html; charset=utf-8" %> 
 <!--utf-8 인코딩 처리-->
+<%@page import="java.io.*, java.net.*"%>
 
 <html>
 <head>
@@ -35,5 +36,6 @@
     f12.write(data); //data 값을 파일에 쓰기
     f12.close(); //FileWriter 객체 닫기
     %>
+    
 </body>
 </html>

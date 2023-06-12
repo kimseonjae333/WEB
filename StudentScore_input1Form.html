@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>inputForm1.html</title>
+
+    <script>
+        //checkForm1 함수 생성
+        function checkForm1 () {
+            const form = document.getElementById('form1'); //id값이 'form1'인 요소를 찾아 변수에 저장
+
+            const userName = form.elements.name.value; //form 요소 내 name 속성을 가진 입력 필드의 값을 가져와 변수에 저장
+            const kor = parseFloat(form.elements.korean.value); 
+            //form 요소 내 name 속성을 가진 입력 필드의 값을 가져와 변수에 저장 + parseFloat() 함수를 사용하여 실수로 변환
+            const eng = parseFloat(form.elements.english.value); 
+            //form 요소 내 name 속성을 가진 입력 필드의 값을 가져와 변수에 저장 + parseFloat() 함수를 사용하여 실수로 변환
+            const mat = parseFloat(form.elements.mathmatic.value); 
+            //form 요소 내 name 속성을 가진 입력 필드의 값을 가져와 변수에 저장 + parseFloat() 함수를 사용하여 실수로 변환
+
+            
+            const pattern1 = /^([a-zA-Z]|[가-힣])+$/; //한글,영어만 입력받는 정규식1 생성
+            const pattern2 = /^.{1,20}$/; //20자 이내만 입력받는 정규식2 생성
+            const pattern3 = /^(?:100|[1-9]?[0-9])$/; //0~100사이의 정수값만 입력받는 정규식3 생성
+
+            if ( !pattern1.test(userName) ) { //이름 칸에 한글, 영어 외의 값이 들어오면
+                alert("한글, 영어만(공백제외) 입력하세요"); //경고 문구 출력
+            } else if (!pattern2.test(userName)) { //이름 칸에 20자 넘게 값이 들어오면
+                alert("20자 이내로 입력하세요"); //경고 문구 출력
+            }
+             else if (!pattern3.test(kor) || !pattern3.test(eng) || !pattern3.test(mat)) { //점수칸에 0부터 100 외의 숫자가 들어오면
+                alert("각 과목의 점수는 0부터 100사이의 숫자입니다."); //경고 문구 출력
+            }
+            else { //위의 조건들을 타지 않을 경우 submit() 실행
+                form.action='insertDB.jsp'; //위 조건들을 모두 만족한다면 'insertDB.jsp'실행
+                form.submit(); //폼 데이터 서버로 전송
+            }
+        }
+        
+    </script>
+    
+</head>
+<body>
+<h1>성적입력추가</h1> <!--화면에 출력-->
+    <form method='post' id='form1'>
+    <!--method = "post" -> 폼 데이터가 HTTP 요청의 본문(body)에 포함되어 서버로 전송 
+    ,사용자가 폼을 제출하면 데이터가 브라우저의 주소 표시줄에 노출되지 않음, 보안성 더 높음-->
+    <!--form 요소에 id 부여-->
+
+        <!--테이블1 만들기, cellspacing: 테이블 셀 사이의 간격 조정-->
+        <table cellspacing=1 width=400 border=0> 
+        <tr> 
+            <td width=300></td> <!--공백-->
+            <td width=100><input type="button" value="추가" onClick="checkForm1()"></td>
+            <!--button 타입, 클릭하면 script의 checkForm1() 함수 실행-->
+        </tr>
+        </table>
+    
+		<table cellspacing=1 width=400 border=1> 
+        <!--테이블2 만들기, cellspacing: 테이블 셀 사이의 간격 조정-->
+            <tr> 
+                <td width=100><p align=center>이름</p></td> 
+                <td width=300><p align=center><input type="text" name="name" value=""></p></td>
+                <!--input 타입 text, name 속성으로 이름 지정, 값은 사용자가 직접 입력-->
+            </tr>
+            <tr> 
+                <td width=100><p align=center>학번</p></td> 
+                <td width=300><p align=center>자동부여</p></td>
+                <!--학번은 자동부여 -> insertDB에서 설정(html에서는 보여지는 화면만)-->
+            </tr>
+            <tr> 
+                <td width=100><p align=center>국어</p></td> 
+                <td width=300><p align=center><input type="text" name="korean" value=""></p></td>
+                <!--input 타입 text, name 속성으로 이름 지정, 값은 사용자가 직접 입력-->
+            </tr>
+            <tr> 
+                <td width=100><p align=center>영어</p></td> 
+                <td width=300><p align=center><input type="text" name="english" value=""></p></td>
+                <!--input 타입 text, name 속성으로 이름 지정, 값은 사용자가 직접 입력-->
+            </tr>
+            <tr> 
+                <td width=100><p align=center>수학</p></td> 
+                <td width=300><p align=center><input type="text" name="mathmatic" value=""></p></td>
+                 <!--input 타입 text, name 속성으로 이름 지정, 값은 사용자가 직접 입력-->
+            </tr>
+        </table>
+    </form>
+</body>
+</html>

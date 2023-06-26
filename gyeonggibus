@@ -1,0 +1,236 @@
+package Portfolio;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+
+public class crawling {
+
+   public static WebDriver driver;
+   public static String base_url = "http://www.gbus.or.kr/2006/program/board/report_lst.php?inja=etc&sm=5_1";
+   public static final String WEB_DRIVER_ID = "webdriver.chrome.driver";
+   public static final String WEB_DRIVER_PATH = "C:\\download\\chromedriver.exe";
+
+   // 성남시=
+   public static String sb1 = "성남시내(주)"; //390,30
+   public static String sb2 = "(주)대원버스"; //378,29
+   public static String sb3 = "(주)대명운수"; //109,6
+   public static int cnt1 = 0; //총 노선 65개
+   public static String swb1 = "수원여객(주)"; //563,40
+   public static String swb2 = "용남고속(주)"; //341,41
+   public static String swb3 = "성우운수(주)"; //119,6
+   public static int cnt2 = 0; //총 노선 147개
+   public static String bb1 = "소신여객(주)"; //344,22
+   public static String bb2 = "부일교통(주)"; //129,10
+   public static String bb3 = "(주)청우운수"; //106,7
+   public static String bb4 =  "부천버스(주)"; //128,4
+   public static int cnt3 = 0; //총 노선 43개
+   
+   
+
+   public static void main(String[] args) throws ClassNotFoundException {
+      System.setProperty(WEB_DRIVER_ID, WEB_DRIVER_PATH);
+      driver = new ChromeDriver();
+      List<Double> countlist = crawl();
+      
+      // DB 연결
+      try {
+         Class.forName("com.mysql.cj.jdbc.Driver");
+         Connection conn = DriverManager.getConnection("jdbc:mysql://192.168.23.108:33060/kopo39", "root", "kopo39");
+         Statement stmt = conn.createStatement();
+
+         int num = 1;
+         for (Double r : countlist) {
+            System.out.println();
+            System.out.println(r);
+            System.out.println(num);
+            String query = "insert into gyeonggibus (id, rate) values (" + num + ", " + r + ");";
+            stmt.execute(query);
+            num++;
+         }
+
+         stmt.close(); // statement 객체 열어줬으면 닫기
+         conn.close(); // connection 객체 열어줬으면 닫기
+         
+         driver.close();
+
+      } catch (SQLException e) { // throw SQLException 예외처리 대신 try-catch 사용해서 에러 위치 정확하게 찾아서 해결하기
+         e.printStackTrace();
+      }
+
+   }
+
+   
+   
+   public static List<Double> crawl() {
+      List<Double> countlist = new ArrayList<>();
+      try {
+         driver.get(base_url);
+         Thread.sleep(1000);
+         
+         for(int c = 0; c < 2; c++) {
+            if(c == 0) {
+            // 불친절 관련 카테고리
+            WebElement category1 = driver.findElement(By.xpath(
+                  "/html/body/div/div/div[1]/table/tbody/tr/td[1]/table/tbody/tr[2]/td/table/tbody/tr[5]/td/a/img"));
+            category1.click();
+            Thread.sleep(1000);
+            } else if(c == 1) {
+            // 난폭운전 관련 카테고리
+            WebElement category2 = driver.findElement(By.xpath(
+                  "/html/body/div/div/div[1]/table/tbody/tr/td[1]/table/tbody/tr[2]/td/table/tbody/tr[6]/td/a/img"));
+            category2.click();
+            Thread.sleep(1000);
+            }
+               //LocalDate currentDate = LocalDate.now();
+               DateTimeFormatter dateformat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+               //String today = currentDate.format(dateformat);
+      
+               String company = "";
+               String date = "";
+               //String deadline = "2023-05-31";
+               String deadlineString = "2023-05-31";
+               LocalDate deadline = LocalDate.parse(deadlineString, dateformat);
+               WebElement pageclick;
+               WebElement nextblock;
+      
+               // 전체 데이터 DB에 넣기
+               // 1block
+               // page1
+               for (int i = 1; i <= 19; i += 2) {
+                  company = driver
+                        .findElement(By
+                              .xpath("/html/body/div/div/div[1]/table/tbody/tr/td[3]/table[2]/tbody/tr/td/table/tbody"
+                                    + "/tr[2]/td/table/tbody/tr/td/form/table/tbody/tr[" + i + "]/td[3]"))
+                        .getText();
+      
+                  if (company.equals(sb1) || company.equals(sb2) || company.equals(sb2)) {
+                     cnt1++;
+                  } else if (company.equals(swb1) || company.equals(swb2) || company.equals(swb3) || company.equals(swb3)) {
+                     cnt2++;
+                  } else if (company.equals(bb1) || company.equals(bb2) || company.equals(bb3)) {
+                     cnt3++;
+                  }
+      
+               }
+      
+               // page2~10
+               int pr = 1; // 페이지 반복 카운트
+               for (pr = 1; pr <= 9; pr++) {
+                  pageclick = driver.findElement(By.xpath(
+                        "/html/body/div/div/div[1]/table/tbody/tr/td[3]/table[2]/tbody/tr/td/table/tbody/tr[2]/td"
+                              + "/table/tbody/tr/td/form/table/tbody/tr[21]/td/table/tbody/tr/td/a[" + pr
+                              + "]/font"));
+                  pageclick.click();
+                  Thread.sleep(1000);
+      
+                  // 행 출력
+                  for (int i = 1; i <= 19; i += 2) {
+                     company = driver
+                           .findElement(By.xpath(
+                                 "/html/body/div/div/div[1]/table/tbody/tr/td[3]/table[2]/tbody/tr/td/table/tbody"
+                                       + "/tr[2]/td/table/tbody/tr/td/form/table/tbody/tr[" + i + "]/td[3]"))
+                           .getText();
+      
+                     if (company.equals(sb1) || company.equals(sb2) || company.equals(sb2)) {
+                        cnt1++;
+                     } else if (company.equals(swb1) || company.equals(swb2) || company.equals(swb3) || company.equals(swb3)) {
+                        cnt2++;
+                     } else if (company.equals(bb1) || company.equals(bb2) || company.equals(bb3)) {
+                        cnt3++;
+                     }
+      
+                  }
+               }
+      
+               nextblock = driver.findElement(
+                     By.xpath("/html/body/div/div/div[1]/table/tbody/tr/td[3]/table[2]/tbody/tr/td/table/tbody/tr[2]/td"
+                           + "/table/tbody/tr/td/form/table/tbody/tr[21]/td/table/tbody/tr/td/a[10]"));
+               nextblock.click();
+               Thread.sleep(2000);
+      
+               // 전체 데이터 DB에 넣기
+               // 2block부터
+               boolean shouldBreak = false;
+      
+               while (true) {
+                   pr = 3; // 초기화
+      
+                   for (pr = 3; pr <= 11; pr++) {
+                       pageclick = driver.findElement(By.xpath(
+                               "/html/body/div/div/div[1]/table/tbody/tr/td[3]/table[2]/tbody/tr/td/table/tbody/tr[2]/td"
+                                       + "/table/tbody/tr/td/form/table/tbody/tr[21]/td/table/tbody/tr/td/a[" + pr
+                                       + "]/font"));
+                       pageclick.click();
+                       Thread.sleep(1000);
+      
+                       // 담당회사 적혀있는 레코드만 추출하여 카운트 세기
+                       for (int i = 1; i <= 19; i += 2) {
+                           date = driver.findElement(By
+                                   .xpath("/html/body/div/div/div[1]/table/tbody/tr/td[3]/table[2]/tbody/tr/td/table/tbody"
+                                           + "/tr[2]/td/table/tbody/tr/td/form/table/tbody/tr[" + i + "]/td[5]"))
+                                   .getText();
+                           LocalDate currentdate = LocalDate.parse(date, dateformat);
+                           company = driver.findElement(By
+                                   .xpath("/html/body/div/div/div[1]/table/tbody/tr/td[3]/table[2]/tbody/tr/td/table/tbody"
+                                           + "/tr[2]/td/table/tbody/tr/td/form/table/tbody/tr[" + i + "]/td[3]"))
+                                   .getText();
+      
+                           if (company.equals(sb1) || company.equals(sb2) || company.equals(sb2)) {
+                           cnt1++;
+                        } else if (company.equals(swb1) || company.equals(swb2) || company.equals(swb3) || company.equals(swb3)) {
+                           cnt2++;
+                        } else if (company.equals(bb1) || company.equals(bb2) || company.equals(bb3)) {
+                           cnt3++;
+                        } else if (currentdate.equals(deadline)) {
+                           if(c == 1) {
+                              double rate1 = Math.round((cnt1 / 65.0) * 100) / 100.0;
+                              double rate2 = Math.round((cnt2 / 147.0) * 100) / 100.0;
+                              double rate3 = Math.round((cnt3 / 43.0) * 100) / 100.0;
+                  
+                                  countlist.add(rate1);
+                                  countlist.add(rate2);
+                                  countlist.add(rate3);
+                                  System.out.println(cnt1 + ":" + rate1);
+                                  System.out.println(cnt2 + ":" + rate2);
+                                  System.out.println(cnt3 + ":" + rate3);
+                           }
+                               shouldBreak = true; // 추가된 부분: break를 대신할 변수 설정
+                               break;
+                           }
+                       }
+      
+                       if (shouldBreak) {
+                           break; // 추가된 부분: 내부 for문을 빠져나온 후 while문을 탈출하기 위한 break
+                       }
+                   }
+      
+                   if (shouldBreak) {
+                       break; // 추가된 부분: 외부 while문을 탈출하기 위한 break
+                      
+                   }
+      
+                   nextblock = driver.findElement(By.xpath(
+                           "/html/body/div/div/div[1]/table/tbody/tr/td[3]/table[2]/tbody/tr/td/table/tbody/tr[2]/td"
+                                   + "/table/tbody/tr/td/form/table/tbody/tr[21]/td/table/tbody/tr/td/a[12]"));
+                   nextblock.click();
+                   Thread.sleep(1000);
+               }   
+         }
+      } catch (InterruptedException e) {
+         e.printStackTrace();
+      }
+      return countlist;
+
+   }
+}

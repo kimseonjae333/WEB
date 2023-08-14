@@ -1,5 +1,0 @@
-package kr.ac.kopo.ctc.kopo39.service;
-
-public interface VoteSystemService {
-
-}
